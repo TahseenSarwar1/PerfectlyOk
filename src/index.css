@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { font-family: 'Nunito', system-ui, sans-serif; scroll-behavior: smooth; }
+  body { background: #F8F5F2; color: #3d3530; }
+  ::selection { background: #CDB4DB; color: #fff; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #F8F5F2; }
+  ::-webkit-scrollbar-thumb { background: #CDB4DB; border-radius: 4px; }
+}
+
+@layer utilities {
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+  .delay-600 { animation-delay: 600ms; }
+  .anim-fill { animation-fill-mode: both; }
+
+  .glass {
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .mesh-bg {
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(167,199,231,0.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 10%, rgba(205,180,219,0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 60% 80%, rgba(183,228,199,0.2) 0%, transparent 50%),
+      #F8F5F2;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0.45;
+  }
+
+  .typing-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #A7C7E7;
+    animation: typing 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+}
+
+@keyframes typing { 0%,100% { opacity:0.3; transform:scale(0.8); } 50% { opacity:1; transform:scale(1); } }
