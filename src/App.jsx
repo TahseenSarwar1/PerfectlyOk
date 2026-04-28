@@ -6,6 +6,7 @@ import Chat from './pages/Chat.jsx'
 import Vent from './pages/Vent.jsx'
 import Gym from './pages/Gym.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import ListenerPortal from './pages/ListenerPortal.jsx'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/gym"       element={<Gym />} />
         <Route path="/dashboard" element={<Dashboard />} />
       </Route>
+      <Route path="/listener" element={<ListenerPortal />} />
     </Routes>
   )
 }
