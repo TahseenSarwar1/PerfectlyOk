@@ -96,7 +96,7 @@ function AIChat() {
           </div>
           <div>
             <p className="font-semibold text-stone-700 text-sm">
-              Antigravity Companion
+              MindMate Companion
             </p>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-muted inline-block animate-pulse-slow" />

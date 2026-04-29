@@ -29,7 +29,7 @@ export default function Layout() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between">
           <NavLink to="/" className="flex items-center gap-2 group">
             <span className="text-2xl group-hover:animate-float inline-block transition-transform duration-300">🌿</span>
-            <span className="font-display text-xl font-semibold text-stone-700 tracking-tight">Antigravity</span>
+            <span className="font-display text-xl font-semibold text-stone-700 tracking-tight">MindMate</span>
           </NavLink>
 
           <div className="hidden md:flex items-center gap-1">
@@ -86,7 +86,7 @@ export default function Layout() {
       </main>
 
       <footer className="py-8 text-center text-xs text-stone-muted border-t border-blue-light/30">
-        <p>Antigravity · Made with care for students everywhere 🌿</p>
+        <p>MindMate · Made with care for students everywhere 🌿</p>
         <p className="mt-1 opacity-60">This is a supportive space, not a substitute for professional help.</p>
       </footer>
     </div>

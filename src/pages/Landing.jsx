@@ -50,7 +50,7 @@ export default function Landing() {
           </h1>
 
           <p className="text-stone-muted text-lg sm:text-xl leading-relaxed mb-10 max-w-lg mx-auto animate-fade-up delay-200 anim-fill">
-            Antigravity is your personal space to feel, reflect, and breathe — without judgment, without pressure.
+            MindMate is your personal space to feel, reflect, and breathe — without judgment, without pressure.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-up delay-300 anim-fill">
