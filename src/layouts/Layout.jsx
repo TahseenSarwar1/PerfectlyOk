@@ -28,7 +28,7 @@ export default function Layout() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'glass shadow-soft py-3' : 'bg-transparent py-5'}`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between">
           <NavLink to="/" className="flex items-center gap-2 group">
-            <span className="text-2xl group-hover:animate-float inline-block transition-transform duration-300">🌿</span>
+            <img src="/logo.png" alt="MindMate" className="w-8 h-8 group-hover:scale-110 transition-transform duration-300 rounded-lg" />
             <span className="font-display text-xl font-semibold text-stone-700 tracking-tight">MindMate</span>
           </NavLink>
 
@@ -88,6 +88,7 @@ export default function Layout() {
       <footer className="py-8 text-center text-xs text-stone-muted border-t border-blue-light/30">
         <p>MindMate · Made with care for students everywhere 🌿</p>
         <p className="mt-1 opacity-60">This is a supportive space, not a substitute for professional help.</p>
+        <p className="mt-2 opacity-50">Crisis: iCall 9152987821 · Vandrevala Foundation 1860-2662-345</p>
       </footer>
     </div>
   )

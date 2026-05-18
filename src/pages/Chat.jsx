@@ -14,9 +14,10 @@ import {
   deleteDoc,
 } from 'firebase/firestore'
 import ChatRoom from '../components/ChatRoom'
+import { chatWithCohere, isCohereConfigured } from '../lib/cohere'
 
-/* ─── AI companion responses (original functionality) ─── */
-const AI_RESPONSES = [
+/* ─── Fallback responses when API key is missing ─── */
+const FALLBACK_RESPONSES = [
   "I hear you, and I want you to know — what you're feeling is completely valid. You don't have to minimize it.",
   "That sounds really hard. It takes courage to even put words to it. Thank you for sharing this with me.",
   "You're not alone in this. Many students feel exactly the way you're describing, even if it doesn't seem that way from the outside.",
@@ -36,23 +37,23 @@ const STARTERS = [
   "I don't know how to manage my anxiety",
 ]
 
-let responseIdx = 0
+let fallbackIdx = 0
 const getId = () => Math.random().toString(36).slice(2)
 
-const INIT = [
-  {
-    id: getId(),
-    role: 'ai',
-    text: "Hi, I'm really glad you're here 💙 This is a safe, judgment-free space. You can share anything on your mind — how are you feeling today?",
-    time: new Date(),
-  },
-]
+const WELCOME_MSG = {
+  id: getId(),
+  role: 'ai',
+  text: "Hi, I'm really glad you're here 💙 This is a safe, judgment-free space. You can share anything on your mind — how are you feeling today?",
+  time: new Date(),
+}
 
-/* ─── AI Chat Component (original, kept intact) ─── */
+/* ─── AI Chat Component with Cohere integration ─── */
 function AIChat() {
-  const [messages, setMessages] = useState(INIT)
+  const [messages, setMessages] = useState([WELCOME_MSG])
+  const [conversationHistory, setConversationHistory] = useState([])
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
+  const [error, setError] = useState(null)
   const endRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -60,27 +61,61 @@ function AIChat() {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, typing])
 
-  const sendMessage = (text) => {
-    const msg = text || input.trim()
-    if (!msg) return
+  const resetChat = () => {
+    setMessages([{ ...WELCOME_MSG, id: getId(), time: new Date() }])
+    setConversationHistory([])
     setInput('')
+    setTyping(false)
+    setError(null)
+  }
 
-    setMessages((prev) => [
-      ...prev,
-      { id: getId(), role: 'user', text: msg, time: new Date() },
-    ])
+  const sendMessage = async (text) => {
+    const msg = text || input.trim()
+    if (!msg || typing) return
+    setInput('')
+    setError(null)
+
+    const userMsg = { id: getId(), role: 'user', text: msg, time: new Date() }
+    setMessages((prev) => [...prev, userMsg])
     setTyping(true)
 
-    const delay = 1200 + Math.random() * 800
-    setTimeout(() => {
-      const reply = AI_RESPONSES[responseIdx % AI_RESPONSES.length]
-      responseIdx++
+    const updatedHistory = [
+      ...conversationHistory,
+      { role: 'user', content: msg },
+    ]
+
+    try {
+      let reply
+      if (isCohereConfigured()) {
+        reply = await chatWithCohere(updatedHistory)
+      } else {
+        /* Graceful fallback */
+        await new Promise((r) => setTimeout(r, 1000 + Math.random() * 800))
+        reply = FALLBACK_RESPONSES[fallbackIdx % FALLBACK_RESPONSES.length]
+        fallbackIdx++
+      }
+
+      setConversationHistory([
+        ...updatedHistory,
+        { role: 'assistant', content: reply },
+      ])
       setTyping(false)
       setMessages((prev) => [
         ...prev,
         { id: getId(), role: 'ai', text: reply, time: new Date() },
       ])
-    }, delay)
+    } catch (err) {
+      console.error('Cohere error:', err)
+      setTyping(false)
+      setError('Something went wrong reaching our AI. Your words still matter — please try again in a moment.')
+      /* Still provide a fallback reply */
+      const fallback = FALLBACK_RESPONSES[fallbackIdx % FALLBACK_RESPONSES.length]
+      fallbackIdx++
+      setMessages((prev) => [
+        ...prev,
+        { id: getId(), role: 'ai', text: fallback, time: new Date() },
+      ])
+    }
   }
 
   const fmt = (d) =>
@@ -90,21 +125,42 @@ function AIChat() {
     <>
       {/* Header */}
       <div className="glass rounded-t-4xl px-5 py-4 border border-white/60 border-b-0 shadow-soft">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-soft/40 flex items-center justify-center text-xl border border-blue-soft/30">
-            🤍
-          </div>
-          <div>
-            <p className="font-semibold text-stone-700 text-sm">
-              MindMate Companion
-            </p>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-muted inline-block animate-pulse-slow" />
-              <p className="text-xs text-stone-muted">Always here for you</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-soft/50 to-lavender/40 flex items-center justify-center text-xl border border-blue-soft/30 shadow-sm">
+              🤍
+            </div>
+            <div>
+              <p className="font-semibold text-stone-700 text-sm">
+                MindMate Companion
+              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-muted inline-block animate-pulse-slow" />
+                <p className="text-xs text-stone-muted">Always here for you</p>
+              </div>
             </div>
           </div>
+          <button
+            onClick={resetChat}
+            title="New chat"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-muted hover:text-blue-dark bg-beige-dark/30 hover:bg-blue-light/40 rounded-xl border border-transparent hover:border-blue-soft/30 transition-all duration-200 hover:-translate-y-0.5"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            New chat
+          </button>
         </div>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="mx-0 bg-lavender/20 border-x border-white/60 px-4 py-2.5 flex items-center gap-2 animate-fade-in anim-fill">
+          <span className="text-sm">💜</span>
+          <p className="text-xs text-lavender-dark leading-relaxed flex-1">{error}</p>
+          <button onClick={() => setError(null)} className="text-lavender-dark/60 hover:text-lavender-dark text-sm transition-colors">✕</button>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto glass border-x border-white/60 px-4 py-4 flex flex-col gap-3">
@@ -116,7 +172,7 @@ function AIChat() {
             }`}
           >
             {msg.role === 'ai' && (
-              <div className="w-7 h-7 rounded-full bg-blue-soft/30 flex items-center justify-center text-sm flex-shrink-0 mb-0.5">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-soft/30 to-lavender/20 flex items-center justify-center text-sm flex-shrink-0 mb-0.5">
                 🤍
               </div>
             )}
@@ -128,7 +184,7 @@ function AIChat() {
               <div
                 className={`px-4 py-3 rounded-3xl text-sm leading-relaxed ${
                   msg.role === 'user'
-                    ? 'bg-blue-soft text-white rounded-br-sm'
+                    ? 'bg-gradient-to-br from-blue-soft to-blue-dark text-white rounded-br-sm shadow-sm'
                     : 'bg-white/80 text-stone-700 rounded-bl-sm border border-blue-light/40'
                 }`}
               >
@@ -143,7 +199,7 @@ function AIChat() {
 
         {typing && (
           <div className="flex gap-2 items-end animate-fade-in anim-fill">
-            <div className="w-7 h-7 rounded-full bg-blue-soft/30 flex items-center justify-center text-sm flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-soft/30 to-lavender/20 flex items-center justify-center text-sm flex-shrink-0">
               🤍
             </div>
             <div className="bg-white/80 border border-blue-light/40 rounded-3xl rounded-bl-sm px-4 py-3 flex gap-1.5 items-center">
@@ -163,7 +219,7 @@ function AIChat() {
             <button
               key={s}
               onClick={() => sendMessage(s)}
-              className="whitespace-nowrap text-xs px-3 py-1.5 bg-blue-light/50 hover:bg-blue-soft/40 text-stone-700 rounded-xl border border-blue-soft/20 transition-all flex-shrink-0 hover:-translate-y-0.5"
+              className="whitespace-nowrap text-xs px-3.5 py-2 bg-gradient-to-r from-blue-light/50 to-lavender-light/30 hover:from-blue-soft/40 hover:to-lavender/30 text-stone-700 rounded-xl border border-blue-soft/20 transition-all flex-shrink-0 hover:-translate-y-0.5 hover:shadow-sm duration-200"
             >
               {s}
             </button>
@@ -187,12 +243,12 @@ function AIChat() {
             }}
             placeholder="Share what's on your mind..."
             disabled={typing}
-            className="flex-1 bg-beige-dark/40 border border-blue-soft/20 rounded-2xl px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-muted focus:outline-none focus:ring-2 focus:ring-blue-soft/50 focus:border-blue-soft transition-all"
+            className="flex-1 bg-beige-dark/40 border border-blue-soft/20 rounded-2xl px-4 py-2.5 text-sm text-stone-700 placeholder:text-stone-muted focus:outline-none focus:ring-2 focus:ring-blue-soft/50 focus:border-blue-soft transition-all disabled:opacity-60"
           />
           <button
             onClick={() => sendMessage()}
             disabled={typing || !input.trim()}
-            className="w-10 h-10 rounded-2xl bg-blue-soft hover:bg-blue-dark disabled:bg-beige-dark flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0"
+            className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-soft to-blue-dark hover:from-blue-dark hover:to-blue-dark disabled:from-beige-dark disabled:to-beige-dark flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0 shadow-sm"
           >
             <svg
               width="14"
@@ -210,7 +266,9 @@ function AIChat() {
           </button>
         </div>
         <p className="text-center text-xs text-stone-muted mt-2 opacity-70">
-          This is a supportive space, not a crisis line.
+          {isCohereConfigured()
+            ? 'Powered by AI · This is a supportive space, not a crisis line.'
+            : 'This is a supportive space, not a crisis line.'}
         </p>
       </div>
     </>
@@ -302,7 +360,7 @@ function PeerListenerChat({ onBack }) {
         {/* Header */}
         <div className="glass rounded-t-4xl px-5 py-4 border border-white/60 border-b-0 shadow-soft">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-light/40 flex items-center justify-center text-xl border border-green-muted/30">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-light/50 to-green-muted/30 flex items-center justify-center text-xl border border-green-muted/30">
               🤍
             </div>
             <div>
@@ -389,7 +447,7 @@ function PeerListenerChat({ onBack }) {
       <div className="flex flex-col gap-3 items-center">
         <button
           onClick={requestListener}
-          className="px-8 py-3.5 bg-green-muted hover:bg-green-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5"
+          className="px-8 py-3.5 bg-gradient-to-r from-green-muted to-green-dark hover:from-green-dark hover:to-green-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5"
         >
           Request a Peer Listener 💚
         </button>
@@ -446,7 +504,7 @@ export default function Chat() {
               id="chat-mode-ai"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-soft/30 flex items-center justify-center text-2xl border border-blue-soft/20 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-soft/30 to-lavender/20 flex items-center justify-center text-2xl border border-blue-soft/20 group-hover:scale-110 transition-transform">
                   🤖
                 </div>
                 <div className="flex-1">

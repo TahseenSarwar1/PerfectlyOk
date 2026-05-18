@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { generateVentResponse, isCohereConfigured } from '../lib/cohere'
 
 const CATEGORIES = [
   { id: 'anxiety',  label: 'Anxiety',         emoji: '🌀', color: 'data-[active=true]:bg-lavender/30 data-[active=true]:border-lavender hover:bg-lavender/20' },
@@ -16,29 +17,100 @@ const SAMPLE_POSTS = [
   { emoji: '💔', category: 'Relationships', time: '2d ago', text: "My best friend and I grew apart after coming to university. I miss them more than I expected and don't know how to reconnect." },
 ]
 
+/* ─── Loading skeleton for AI response ─── */
+function AiResponseSkeleton() {
+  return (
+    <div className="glass rounded-3xl p-6 border border-lavender/30 shadow-card animate-pulse mt-6">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded-full bg-lavender/30" />
+        <div className="h-3 w-32 bg-lavender/20 rounded-full" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-3 w-full bg-lavender/15 rounded-full" />
+        <div className="h-3 w-4/5 bg-lavender/15 rounded-full" />
+        <div className="h-3 w-3/5 bg-lavender/15 rounded-full" />
+      </div>
+    </div>
+  )
+}
+
 export default function Vent() {
   const [category, setCategory] = useState(null)
   const [text, setText] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [aiResponse, setAiResponse] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState(false)
 
-  const handleSubmit = () => {
+  const getCategoryLabel = (id) => {
+    const cat = CATEGORIES.find(c => c.id === id)
+    return cat ? cat.label : 'something personal'
+  }
+
+  const handleSubmit = async () => {
     if (!text.trim() || !category) return
     setSubmitted(true)
+    setAiResponse(null)
+    setAiError(false)
+
+    if (!isCohereConfigured()) {
+      /* Graceful degradation — no API key, skip AI response */
+      return
+    }
+
+    setAiLoading(true)
+    try {
+      const response = await generateVentResponse(text.trim(), getCategoryLabel(category))
+      setAiResponse(response)
+    } catch (err) {
+      console.error('Vent AI response error:', err)
+      setAiError(true)
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   if (submitted) {
     return (
       <div className="mesh-bg min-h-screen flex items-center justify-center px-4 py-16">
-        <div className="max-w-md mx-auto text-center animate-bounce-in anim-fill">
-          <div className="text-5xl mb-5">🌿</div>
-          <h2 className="font-display text-3xl text-stone-700 mb-4">That took courage.</h2>
-          <p className="text-stone-muted leading-relaxed mb-8">
-            You put words to something real. That's the first step. Your words have been released into the world anonymously — you're not alone in feeling this way.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="max-w-md mx-auto">
+          <div className="text-center animate-bounce-in anim-fill">
+            <div className="text-5xl mb-5">🌿</div>
+            <h2 className="font-display text-3xl text-stone-700 mb-4">That took courage.</h2>
+            <p className="text-stone-muted leading-relaxed mb-6">
+              You put words to something real. That's the first step. Your words have been released into the world anonymously — you're not alone in feeling this way.
+            </p>
+          </div>
+
+          {/* AI personalized response */}
+          {aiLoading && <AiResponseSkeleton />}
+
+          {aiResponse && (
+            <div className="glass rounded-3xl p-6 border border-lavender/30 shadow-card mt-6 animate-fade-up anim-fill">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-lavender/40 to-blue-soft/30 flex items-center justify-center text-sm">
+                  💜
+                </div>
+                <p className="text-xs font-semibold text-lavender-dark">MindMate's words for you</p>
+              </div>
+              <p className="text-sm text-stone-700 leading-relaxed italic">
+                "{aiResponse}"
+              </p>
+            </div>
+          )}
+
+          {aiError && (
+            <div className="bg-lavender/15 rounded-2xl p-4 mt-6 text-center animate-fade-in anim-fill">
+              <p className="text-xs text-stone-muted">
+                💜 We couldn't generate a personalized response right now, but your words still matter deeply.
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mt-8 animate-fade-up delay-200 anim-fill">
             <button
-              onClick={() => { setSubmitted(false); setText(''); setCategory(null) }}
-              className="px-6 py-2.5 bg-blue-soft hover:bg-blue-dark text-white font-semibold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 shadow-soft text-sm"
+              onClick={() => { setSubmitted(false); setText(''); setCategory(null); setAiResponse(null); setAiError(false) }}
+              className="px-6 py-2.5 bg-gradient-to-r from-blue-soft to-blue-dark hover:from-blue-dark hover:to-blue-dark text-white font-semibold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 shadow-soft text-sm"
             >
               Vent again
             </button>
@@ -88,7 +160,7 @@ export default function Vent() {
             className="w-full bg-beige-dark/30 border border-blue-soft/20 rounded-2xl px-4 py-3 text-sm text-stone-700 placeholder:text-stone-muted focus:outline-none focus:ring-2 focus:ring-blue-soft/40 resize-none leading-relaxed transition-all"
           />
           <div className="flex items-center justify-between mt-3">
-            <p className="text-xs text-stone-muted">{text.length > 0 ? `${text.length} characters` : 'Start typing when you&apos;re ready'}</p>
+            <p className="text-xs text-stone-muted">{text.length > 0 ? `${text.length} characters` : 'Start typing when you\u0027re ready'}</p>
             <p className="text-xs text-stone-muted italic">Always anonymous 🔒</p>
           </div>
         </div>
@@ -97,7 +169,7 @@ export default function Vent() {
           <button
             onClick={handleSubmit}
             disabled={!text.trim() || !category}
-            className="px-8 py-3.5 bg-lavender hover:bg-lavender-dark disabled:bg-beige-dark disabled:text-stone-muted text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:shadow-none"
+            className="px-8 py-3.5 bg-gradient-to-r from-lavender to-lavender-dark hover:from-lavender-dark hover:to-lavender-dark disabled:from-beige-dark disabled:to-beige-dark disabled:text-stone-muted text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:shadow-none"
           >
             Release it into the world ✦
           </button>

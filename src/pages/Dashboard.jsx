@@ -45,7 +45,7 @@ export default function Dashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 animate-fade-up delay-100 anim-fill">
           {STATS.map(s => (
-            <div key={s.label} className="glass rounded-2xl p-4 border border-white/60 shadow-card text-center">
+            <div key={s.label} className="glass rounded-2xl p-4 border border-white/60 shadow-card text-center hover:shadow-soft transition-all duration-300 hover:-translate-y-0.5">
               <div className="text-xl mb-1">{s.icon}</div>
               <div className="font-display text-2xl text-stone-700 font-semibold">{s.value}</div>
               <div className="text-xs text-stone-muted mt-0.5 leading-tight">{s.label}</div>
@@ -61,10 +61,10 @@ export default function Dashboard() {
           </div>
           <div className="flex items-end justify-between gap-2 h-28">
             {MOOD_HISTORY.map((m) => (
-              <div key={m.day} className="flex flex-col items-center gap-1.5 flex-1">
-                <span className="text-lg">{m.emoji}</span>
+              <div key={m.day} className="flex flex-col items-center gap-1.5 flex-1 group">
+                <span className="text-lg group-hover:scale-110 transition-transform duration-200">{m.emoji}</span>
                 <div
-                  className={`w-full rounded-t-xl ${m.color} transition-all duration-500`}
+                  className={`w-full rounded-t-xl ${m.color} transition-all duration-500 group-hover:opacity-80`}
                   style={{ height: `${(m.value / maxVal) * 64}px`, minHeight: 8 }}
                   title={`${m.day}: ${m.label}`}
                 />
@@ -84,7 +84,7 @@ export default function Dashboard() {
             {INSIGHTS.map((ins, i) => (
               <div
                 key={i}
-                className={`flex items-start gap-3 p-3 rounded-2xl text-sm ${
+                className={`flex items-start gap-3 p-3 rounded-2xl text-sm transition-all duration-200 hover:-translate-x-0.5 ${
                   ins.type === 'positive' ? 'bg-green-light/30 text-sage' :
                   ins.type === 'suggestion' ? 'bg-blue-light/30 text-blue-dark' :
                   'bg-beige-dark/40 text-stone-warm'
@@ -116,7 +116,7 @@ export default function Dashboard() {
         </div>
 
         {/* Reminder card */}
-        <div className="mt-8 bg-blue-soft/20 border border-blue-soft/30 rounded-3xl p-6 text-center animate-fade-up delay-500 anim-fill">
+        <div className="mt-8 bg-gradient-to-r from-blue-soft/20 to-lavender/15 border border-blue-soft/30 rounded-3xl p-6 text-center animate-fade-up delay-500 anim-fill">
           <p className="text-blue-dark font-medium mb-1">Remember</p>
           <p className="text-stone-muted text-sm leading-relaxed">
             This is a glimpse into your week — not a judgment. Every day you show up for yourself counts. 💙
