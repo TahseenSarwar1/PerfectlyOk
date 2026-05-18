@@ -55,3 +55,12 @@
 }
 
 @keyframes typing { 0%,100% { opacity:0.3; transform:scale(0.8); } 50% { opacity:1; transform:scale(1); } }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Smooth global transitions for interactive elements */
+button, a { transition-timing-function: cubic-bezier(0.4,0,0.2,1); }
+* { -webkit-tap-highlight-color: transparent; }

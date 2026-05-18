@@ -99,7 +99,7 @@ export default function Mood() {
           <div className="text-center animate-bounce-in anim-fill">
             <button
               onClick={() => setSubmitted(true)}
-              className="px-8 py-3.5 bg-blue-soft hover:bg-blue-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5"
+              className="px-8 py-3.5 bg-gradient-to-r from-blue-soft to-blue-dark hover:from-blue-dark hover:to-blue-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5"
             >
               That's how I feel ✦
             </button>
@@ -121,7 +121,7 @@ export default function Mood() {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   to={mood.response.to}
-                  className="px-6 py-2.5 bg-blue-soft hover:bg-blue-dark text-white font-semibold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 shadow-soft text-sm"
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-soft to-blue-dark hover:from-blue-dark hover:to-blue-dark text-white font-semibold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 shadow-soft text-sm"
                 >
                   {mood.response.cta}
                 </Link>
@@ -133,6 +133,15 @@ export default function Mood() {
                 </button>
               </div>
             </div>
+
+            {/* Crisis resources for low/tough moods */}
+            {(mood.value === 'low' || mood.value === 'tough') && (
+              <div className="glass rounded-2xl p-4 mt-4 text-center border border-lavender/30 animate-fade-up delay-200 anim-fill">
+                <p className="text-xs text-stone-muted leading-relaxed">
+                  If you need immediate support: iCall <span className="font-semibold text-blue-dark">9152987821</span> · Vandrevala Foundation <span className="font-semibold text-blue-dark">1860-2662-345</span>
+                </p>
+              </div>
+            )}
 
             <p className="text-center text-xs text-stone-muted mt-4 italic">
               It's okay to feel this way. You're not alone. 🌿

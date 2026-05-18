@@ -7,6 +7,7 @@ const FEATURES = [
     desc: 'Check in with yourself daily. No pressure, no judgment — just a gentle moment of self-awareness.',
     color: 'bg-blue-light/40',
     border: 'border-blue-soft/40',
+    hoverBorder: 'hover:border-blue-soft',
   },
   {
     icon: '💬',
@@ -14,6 +15,7 @@ const FEATURES = [
     desc: "Talk to someone who's always available. Warm, empathetic responses whenever you need them.",
     color: 'bg-lavender-light/40',
     border: 'border-lavender/40',
+    hoverBorder: 'hover:border-lavender',
   },
   {
     icon: '🧘',
@@ -21,6 +23,7 @@ const FEATURES = [
     desc: 'Small, science-backed exercises for your mind. Breathing, gratitude, and gentle reframes.',
     color: 'bg-green-light/40',
     border: 'border-green-muted/40',
+    hoverBorder: 'hover:border-green-muted',
   },
 ]
 
@@ -56,7 +59,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-up delay-300 anim-fill">
             <Link
               to="/mood"
-              className="w-full sm:w-auto px-8 py-3.5 bg-blue-soft hover:bg-blue-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5 text-center"
+              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-soft to-blue-dark hover:from-blue-dark hover:to-blue-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-0.5 text-center"
             >
               Check your mood ✦
             </Link>
@@ -102,10 +105,10 @@ export default function Landing() {
             {FEATURES.map((f, i) => (
               <div
                 key={f.title}
-                className={`${f.color} border ${f.border} rounded-3xl p-6 hover:shadow-soft transition-all duration-300 hover:-translate-y-1`}
+                className={`${f.color} border ${f.border} ${f.hoverBorder} rounded-3xl p-6 hover:shadow-soft transition-all duration-300 hover:-translate-y-1 group`}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
-                <div className="text-3xl mb-4">{f.icon}</div>
+                <div className="text-3xl mb-4 group-hover:scale-110 transition-transform duration-200 inline-block">{f.icon}</div>
                 <h3 className="font-semibold text-stone-700 text-lg mb-2">{f.title}</h3>
                 <p className="text-stone-muted text-sm leading-relaxed">{f.desc}</p>
               </div>
@@ -117,13 +120,13 @@ export default function Landing() {
       {/* Vent CTA */}
       <section className="py-12 px-4">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-lavender/20 border border-lavender/30 rounded-4xl p-8 sm:p-12 text-center relative overflow-hidden">
+          <div className="bg-gradient-to-br from-lavender/20 to-lavender-light/10 border border-lavender/30 rounded-4xl p-8 sm:p-12 text-center relative overflow-hidden">
             <div className="orb w-64 h-64 bg-lavender -top-16 -right-16" style={{position:'absolute'}} />
             <div className="relative z-10">
               <p className="text-lavender-dark text-sm font-semibold uppercase tracking-widest mb-3">Anonymous Venting</p>
               <h2 className="font-display text-3xl text-stone-700 mb-4">Some things just need to be said</h2>
               <p className="text-stone-muted mb-6 max-w-md mx-auto">Write it out. Release it. No names, no judgment — just space to breathe.</p>
-              <Link to="/vent" className="inline-block px-6 py-3 bg-lavender hover:bg-lavender-dark text-white font-semibold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 shadow-soft">
+              <Link to="/vent" className="inline-block px-6 py-3 bg-gradient-to-r from-lavender to-lavender-dark hover:from-lavender-dark hover:to-lavender-dark text-white font-semibold rounded-2xl transition-all duration-300 hover:-translate-y-0.5 shadow-soft">
                 Start venting →
               </Link>
             </div>
@@ -147,6 +150,19 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Crisis resources */}
+      <section className="py-8 px-4">
+        <div className="max-w-3xl mx-auto">
+          <div className="glass rounded-3xl p-6 border border-blue-soft/30 shadow-card text-center">
+            <p className="text-sm font-semibold text-stone-700 mb-2">Need immediate support?</p>
+            <p className="text-xs text-stone-muted leading-relaxed">
+              iCall: <span className="font-semibold text-blue-dark">9152987821</span> · Vandrevala Foundation: <span className="font-semibold text-blue-dark">1860-2662-345</span>
+            </p>
+            <p className="text-xs text-stone-muted mt-1 opacity-70">Available 24/7, free and confidential</p>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-20 px-4 text-center">
         <div className="max-w-xl mx-auto">
@@ -155,7 +171,7 @@ export default function Landing() {
           <p className="text-stone-muted mb-8">It starts with one step. No sign-up, no judgment.</p>
           <Link
             to="/mood"
-            className="inline-block px-10 py-4 bg-blue-soft hover:bg-blue-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-1 text-lg"
+            className="inline-block px-10 py-4 bg-gradient-to-r from-blue-soft to-blue-dark hover:from-blue-dark hover:to-blue-dark text-white font-semibold rounded-2xl shadow-soft hover:shadow-float transition-all duration-300 hover:-translate-y-1 text-lg"
           >
             Begin your check-in ✦
           </Link>
